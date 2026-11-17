@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Magazzino Presidi Sanitari & Emergenza</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; font-size: 11pt; }
+            .shadow-sm, .shadow-md, .shadow-2xl { box-shadow: none !important; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #cbd5e1 !important; padding: 6px !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="h-full flex overflow-hidden font-sans text-slate-800 antialiased">
+
+    <!-- SCHERMATA LOGIN CON EMAIL E PASSWORD -->
+    <div id="view-login" class="fixed inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 flex flex-col">
+            <!-- Header Logo -->
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-xl shadow-emerald-900/30">
+                    <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">MedLogix Magazzino</h2>
+                <p class="text-xs text-slate-500 mt-1">Accesso Operatori & Responsabili Presidi Sanitari</p>
+            </div>
+
+            <!-- Form di Login -->
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email Aziendale *</label>
+                    <div class="relative">
+                        <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
+                        <input id="login-email" name="email" type="email" required placeholder="nome@magazzino.sanitario" value="admin@magazzino.sanitario" class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password *</label>
+                    <div class="relative">
+                        <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <input id="login-password" name="password" type="password" required placeholder="••••••••" value="admin123" class="w-full pl-11 pr-11 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <button type="button" onclick="const p = document.getElementById('login-password'); p.type = p.type === 'password' ? 'text' : 'password';" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold">👁️</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs">
+                    <label class="flex items-center gap-2 text-slate-600 cursor-pointer">
+                        <input type="checkbox" name="remember" checked class="rounded text-emerald-600 focus:ring-emerald-500">
+                        <span>Ricordami su questo dispositivo</span>
+                    </label>
+                    <span class="text-slate-400">Accesso Protetto</span>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 mt-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                    Accedi al Magazzino
+                </button>
+            </form>
+
+            <!-- Box Accesso Rapido Demo / Operatori -->
+            <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Accesso Rapido Preconfigurato:</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="window.WarehouseApp.quickFillLogin('admin@magazzino.sanitario', 'admin123')" class="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left transition-colors">
+                        <span class="text-xs font-bold text-slate-800 block">👑 Responsabile</span>
+                        <span class="text-[10px] text-slate-400 block font-mono">admin123</span>
+                    </button>
+                    <button type="button" onclick="window.WarehouseApp.quickFillLogin('soccorritore@magazzino.sanitario', 'soccorso123')" class="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left transition-colors">
+                        <span class="text-xs font-bold text-slate-800 block">🚑 Soccorritore</span>
+                        <span class="text-[10px] text-slate-400 block font-mono">soccorso123</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="view-app" class="h-full w-full flex overflow-hidden">
+
+    <!-- Container Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
+
+    <!-- Mobile Backdrop Overlay -->
+    <div id="mobile-sidebar-backdrop" onclick="window.WarehouseApp.closeMobileMenu()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="app-sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 no-print border-r border-slate-800 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none">
+        <!-- Logo & Header -->
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-lg shadow-emerald-900/30">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base text-white leading-tight">MedLogix</h1>
+                    <span class="text-xs text-emerald-400 font-medium">Magazzino Presidi</span>
+                </div>
+            </div>
+            <!-- Pulsante chiudi per mobile -->
+            <button onclick="window.WarehouseApp.closeMobileMenu()" class="md:hidden text-slate-400 hover:text-white p-1.5 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- System Quick Info -->
+        <div class="px-5 py-3 bg-slate-950/60 border-b border-slate-800/80 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-xs text-slate-400 font-mono">16 Nov 2026</span>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-semibold">Online</span>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+            <button onclick="window.WarehouseApp.switchTab('dashboard')" data-tab="dashboard" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-emerald-700 text-white shadow-md">
+                <svg class="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+
+            <button onclick="window.WarehouseApp.switchTab('inventory')" data-tab="inventory" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-emerald-100 hover:bg-emerald-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <div class="flex-1 flex items-center justify-between">
+                    <span>Giacenze & Catalogo</span>
+                    <span id="filter-count-understock" class="px-2 py-0.5 text-xs font-bold rounded-full bg-rose-500 text-white">6</span>
+                </div>
+            </button>
+
+            <button onclick="window.WarehouseApp.switchTab('lots')" data-tab="lots" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-emerald-100 hover:bg-emerald-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Lotti & Scadenze (FEFO)</span>
+            </button>
+
+            <button onclick="window.WarehouseApp.switchTab('movements')" data-tab="movements" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-emerald-100 hover:bg-emerald-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span>Registro Movimenti</span>
+            </button>
+
+            <button onclick="window.WarehouseApp.switchTab('reorder')" data-tab="reorder" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-emerald-100 hover:bg-emerald-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <span>Piano Riordino Sottoscorta</span>
+            </button>
+
+            <button onclick="window.WarehouseApp.switchTab('destinations')" data-tab="destinations" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-emerald-100 hover:bg-emerald-800">
+                <span class="text-base shrink-0">🚑</span>
+                <div class="flex-1 flex items-center justify-between">
+                    <span>Mezzi & Reparti</span>
+                    <span id="kpi-destinations-count" class="px-2 py-0.5 text-xs font-bold rounded-full bg-slate-800 text-emerald-400">8</span>
+                </div>
+            </button>
+
+            <div class="pt-4 mt-4 border-t border-slate-800">
+                <span class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Utilità & Dati</span>
+                <button onclick="window.WarehouseApp.switchTab('settings')" data-tab="settings" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-emerald-100 hover:bg-emerald-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    <span>Import, Export & Backup</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Quick Discharge & Load Actions in Sidebar -->
+        <div class="p-4 border-t border-slate-800 space-y-2">
+            <button onclick="window.WarehouseApp.openModal('modal-load')" class="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Nuovo Carico Merci
+            </button>
+            <button onclick="window.WarehouseApp.openModal('modal-discharge')" class="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                Scarico Presidio / Mezzo
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        <!-- TOP BAR -->
+        <header class="h-16 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between shrink-0 no-print">
+            <div class="flex items-center gap-3">
+                <!-- Hamburger per smartphone e tablet -->
+                <button onclick="window.WarehouseApp.toggleMobileMenu()" class="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-xl" title="Apri Menu Navigazione">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="hidden sm:block">
+                    <span class="text-sm font-semibold text-slate-500">Postazione: <strong class="text-slate-800">Magazzino Centrale Presidi & Ambulanze</strong></span>
+                </div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span class="hidden sm:inline">Database Sincronizzato</span>
+                    <span class="sm:hidden">Online</span>
+                </span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Campanella Allarmi Scadenze -->
+                <button onclick="window.WarehouseApp.openExpiryModal()" id="btn-notification-bell" class="relative p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-slate-600" title="Centro Allarmi & Scadenze">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span id="badge-alert-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-red-600 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-md animate-pulse">0</span>
+                </button>
+
+                <button onclick="window.WarehouseApp.openModal('modal-add-item')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-200">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    Nuovo Articolo a Catalogo
+                </button>
+                <button onclick="window.WarehouseApp.exportToCSV('inventory')" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-emerald-200">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Esporta Inventario CSV
+                </button>
+                <button onclick="window.print()" class="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl transition-colors border border-slate-200" title="Stampa Pagina">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN SCROLLABLE BODY -->
+        <main class="flex-1 overflow-y-auto p-6 bg-slate-50">
+
+            <!-- TAB 1: DASHBOARD -->
+            <div id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Banner Allerta Critico Presidi Scaduti -->
+                <div id="global-expired-banner" class="hidden p-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-xl shadow-red-900/20 border border-red-500 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="p-2.5 rounded-xl bg-white/20 text-white shrink-0 animate-bounce">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </span>
+                        <div>
+                            <h3 class="font-black text-base tracking-wide flex items-center gap-2">
+                                <span>ALLERTA SICUREZZA: RILEVATI LOTTI SCADUTI A MAGAZZINO!</span>
+                                <span id="banner-expired-badge" class="px-2 py-0.5 rounded-full text-xs bg-white text-red-700 font-bold">0 lotti</span>
+                            </h3>
+                            <p class="text-xs text-red-100 mt-0.5">I presidi scaduti non devono essere distribuiti sulle ambulanze o nei reparti operativi. Isolarli per lo smaltimento.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.WarehouseApp.showExpiredLotsOnly()" class="px-4 py-2 bg-white text-red-700 hover:bg-red-50 rounded-xl text-xs font-black shadow transition-all flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            Isola & Visualizza Scaduti
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Welcome Banner -->
+                <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-teal-950 rounded-3xl p-6 text-white shadow-xl flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-semibold rounded-full border border-emerald-400/30 mb-2">Servizio Sanitario & Emergenza</span>
+                        <h2 class="text-2xl font-black tracking-tight">Panoramica Giacenze e Forniture</h2>
+                        <p class="text-sm text-slate-300 mt-1 max-w-xl">Monitoraggio in tempo reale dei presidi sanitari, gestione delle scorte di sicurezza e tracciamento scadenze per ambulanze e reparti.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.WarehouseApp.openModal('modal-load')" class="px-5 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-2xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Registra Carico
+                        </button>
+                        <button onclick="window.WarehouseApp.openModal('modal-discharge')" class="px-5 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-sm transition-all border border-white/20 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                            Scarico Rapido
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 KPI CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- KPI 1 -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Presidi a Catalogo</span>
+                            <span class="p-2 rounded-xl bg-blue-50 text-blue-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            </span>
+                        </div>
+                        <div>
+                            <div id="kpi-total-items" class="text-3xl font-black text-slate-800">64</div>
+                            <span id="kpi-total-units" class="text-xs font-semibold text-slate-500 block mt-1">Caricamento...</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2 -->
+                    <div onclick="window.WarehouseApp.switchTab('reorder')" class="bg-white rounded-2xl p-5 border border-rose-200 hover:border-rose-400 transition-all shadow-sm flex flex-col justify-between cursor-pointer group">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-rose-500">Sottoscorta Critici</span>
+                            <span class="p-2 rounded-xl bg-rose-50 text-rose-600 group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </span>
+                        </div>
+                        <div>
+                            <div class="flex items-baseline gap-2">
+                                <div id="kpi-understock-count" class="text-3xl font-black text-rose-600">6</div>
+                                <span class="text-xs font-bold text-rose-500">articoli</span>
+                            </div>
+                            <span id="kpi-out-of-stock" class="text-xs text-rose-600/80 block mt-1 font-medium">4 a giacenza zero</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3 -->
+                    <div onclick="window.WarehouseApp.switchTab('lots')" class="bg-white rounded-2xl p-5 border border-amber-200 hover:border-amber-400 transition-all shadow-sm flex flex-col justify-between cursor-pointer group">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-amber-600">Scadenze &lt; 180gg</span>
+                            <span class="p-2 rounded-xl bg-amber-50 text-amber-600 group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </span>
+                        </div>
+                        <div>
+                            <div class="flex items-baseline gap-2">
+                                <div id="kpi-expiring-count" class="text-3xl font-black text-amber-700">8</div>
+                                <span class="text-xs font-bold text-amber-600">lotti da monitorare</span>
+                            </div>
+                            <span class="text-xs text-slate-400 block mt-1">Consumo prioritario FEFO</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4 -->
+                    <div onclick="window.WarehouseApp.switchTab('movements')" class="bg-white rounded-2xl p-5 border border-slate-200 hover:border-slate-300 transition-all shadow-sm flex flex-col justify-between cursor-pointer">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Movimenti Totali</span>
+                            <span class="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            </span>
+                        </div>
+                        <div>
+                            <div id="kpi-total-movements" class="text-3xl font-black text-slate-800">1.072</div>
+                            <span id="kpi-movements-sub" class="text-xs text-slate-500 block mt-1">204 carichi • 868 scarichi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ALERTS GRID: Sottoscorta + Scadenze Imminenti -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Box Sottoscorta -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                <h3 class="font-bold text-base text-slate-800">Articoli Sottoscorta / Da Riordinare</h3>
+                            </div>
+                            <button onclick="window.WarehouseApp.switchTab('reorder')" class="text-xs text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1">
+                                Piano d'ordine &rarr;
+                            </button>
+                        </div>
+                        <div id="dashboard-understock-list" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                            <!-- Popolato dinamicamente da app.js -->
+                        </div>
+                    </div>
+
+                    <!-- Box Scadenze Vicine -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                                <h3 class="font-bold text-base text-slate-800">Prossime Scadenze Lotti (Radar FEFO)</h3>
+                            </div>
+                            <button onclick="window.WarehouseApp.switchTab('lots')" class="text-xs text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1">
+                                Vista completa lotti &rarr;
+                            </button>
+                        </div>
+                        <div id="dashboard-expiry-list" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                            <!-- Popolato dinamicamente da app.js -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS SECTION -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Grafico Movimentazioni -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm lg:col-span-2">
+                        <h3 class="font-bold text-base text-slate-800 mb-1">Andamento Movimentazioni Magazzino</h3>
+                        <p class="text-xs text-slate-400 mb-4">Confronto tra pezzi scaricati (consumo) e pezzi caricati (rifornimento)</p>
+                        <div class="h-64 relative">
+                            <canvas id="chart-movements"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Grafico Categorie -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                        <h3 class="font-bold text-base text-slate-800 mb-1">Ripartizione Categorie</h3>
+                        <p class="text-xs text-slate-400 mb-4">Giacenza per tipologia presidio</p>
+                        <div class="h-64 relative">
+                            <canvas id="chart-categories"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top 10 Presidi Consumati -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                    <h3 class="font-bold text-base text-slate-800 mb-1">I Presidi più Richiesti & Consumati</h3>
+                    <p class="text-xs text-slate-400 mb-4">Volume complessivo di scarico registrato nello storico operativo</p>
+                    <div class="h-64 relative">
+                        <canvas id="chart-top-items"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: INVENTARIO & GIACENZE -->
+            <div id="tab-inventory" class="tab-content hidden space-y-5">
+                <!-- Filtri & Azioni -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex-1 min-w-[280px] relative">
+                            <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input id="inventory-search-input" type="text" placeholder="Cerca materiale per nome o codice (es: Ambu, Cannula, Guanti, MED-101)..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <select id="inventory-category-select" class="px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="ALL">Tutte le Categorie (9)</option>
+                                <option value="Vie Aeree & Ventilazione">Vie Aeree & Ventilazione</option>
+                                <option value="Medicazione & Bendaggi">Medicazione & Bendaggi</option>
+                                <option value="DPI & Disinfezione">DPI & Disinfezione</option>
+                                <option value="Diagnostica & Monitoraggio">Diagnostica & Monitoraggio</option>
+                                <option value="Strumenti & Presidi Chirurgici">Strumenti & Presidi Chirurgici</option>
+                                <option value="Crioterapia">Crioterapia</option>
+                                <option value="Tessili & Biancheria">Tessili & Biancheria</option>
+                                <option value="Smaltimento Rifiuti Sanitari">Smaltimento Rifiuti</option>
+                                <option value="Alimentazione & Batterie">Pile & Batterie</option>
+                            </select>
+
+                            <!-- Switch Vista Tabella / Griglia -->
+                            <div class="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200">
+                                <button id="btn-view-table" onclick="window.WarehouseApp.setViewMode('table')" title="Vista Tabella" class="p-1.5 rounded-lg bg-emerald-600 text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                </button>
+                                <button id="btn-view-cards" onclick="window.WarehouseApp.setViewMode('cards')" title="Vista Schede" class="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pillole Filtro Stato Scorta -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                        <span class="text-xs font-semibold text-slate-400 mr-1">Filtra Stato:</span>
+                        <button onclick="window.WarehouseApp.setStatusFilter('ALL')" data-status="ALL" class="filter-pill-status px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-emerald-600 text-white">
+                            Tutti
+                        </button>
+                        <button onclick="window.WarehouseApp.setStatusFilter('SCADUTI')" data-status="SCADUTI" class="filter-pill-status px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-red-100 text-red-700 hover:bg-red-200">
+                            🔴 Presidi Scaduti
+                        </button>
+                        <button onclick="window.WarehouseApp.setStatusFilter('SOTTOSCORTA')" data-status="SOTTOSCORTA" class="filter-pill-status px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200">
+                            🚨 Sottoscorta (6)
+                        </button>
+                        <button onclick="window.WarehouseApp.setStatusFilter('ESAURITO')" data-status="ESAURITO" class="filter-pill-status px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200">
+                            ⛔ Esauriti (Giacenza 0)
+                        </button>
+                        <button onclick="window.WarehouseApp.setStatusFilter('SCADENZA_VICINA')" data-status="SCADENZA_VICINA" class="filter-pill-status px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200">
+                            ⏳ Con Scadenze Vicine
+                        </button>
+                        <button onclick="window.WarehouseApp.setStatusFilter('NORMALE')" data-status="NORMALE" class="filter-pill-status px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200">
+                            ✅ Regolari
+                        </button>
+
+                        <span id="inventory-items-count" class="text-xs text-slate-400 ml-auto font-mono">64 articoli</span>
+                    </div>
+                </div>
+
+                <!-- Contenitore Tabella o Griglia -->
+                <div id="inventory-table-container">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+
+            <!-- TAB 3: LOTTI & SCADENZE (FEFO) -->
+            <div id="tab-lots" class="tab-content hidden space-y-5">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">Tracciamento Lotti e Metodo FEFO</h3>
+                        <p class="text-sm text-slate-500 mt-0.5">I lotti sono ordinati secondo il principio <strong>First Expired First Out</strong>: consumare prima i presidi con scadenza più ravvicinata per azzerare gli sprechi.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.WarehouseApp.openModal('modal-load')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Nuovo Lotto in Carico
+                        </button>
+                    </div>
+                </div>
+
+                <div id="lots-table-container">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+
+            <!-- TAB 4: REGISTRO MOVIMENTI -->
+            <div id="tab-movements" class="tab-content hidden space-y-5">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex-1 min-w-[280px] relative">
+                            <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input id="movement-search-input" type="text" placeholder="Cerca movimento per materiale, lotto o destinazione (es: Ambulanza Charlie)..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <select onchange="window.WarehouseApp.setMovementDateFilter(this.value)" class="px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 bg-white">
+                                <option value="ALL">Tutto lo Storico</option>
+                                <option value="LAST_30">Ultimi 30 Giorni</option>
+                                <option value="LAST_90">Ultimi 90 Giorni</option>
+                            </select>
+
+                            <button onclick="window.WarehouseApp.exportToCSV('movements')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-200">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Esporta Registro CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filtri Tipo Movimento -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.WarehouseApp.setMovementTypeFilter('ALL')" class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white">Tutti i Movimenti</button>
+                            <button onclick="window.WarehouseApp.setMovementTypeFilter('CARICO')" class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200">Solo Carichi (Inbound)</button>
+                            <button onclick="window.WarehouseApp.setMovementTypeFilter('SCARICO')" class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200">Solo Scarichi (Outbound)</button>
+                        </div>
+                        <span id="movements-count-label" class="text-xs text-slate-500 font-mono">1.072 movimenti</span>
+                    </div>
+                </div>
+
+                <div id="movements-table-container">
+                    <!-- Popolato dinamicamente con paginazione -->
+                </div>
+            </div>
+
+            <!-- TAB 5: PIANO RIORDINO SOTTOSCORTA -->
+            <div id="tab-reorder" class="tab-content hidden space-y-5">
+                <div class="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-transparent border border-rose-200 rounded-2xl p-5 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-rose-700 uppercase tracking-wider block mb-1">Algoritmo di Approvvigionamento</span>
+                        <h3 class="font-black text-xl text-slate-800">Piano Automatico Riordino Sottoscorta</h3>
+                        <p class="text-sm text-slate-600 mt-1 max-w-2xl">
+                            Il sistema calcola la quantità consigliata da ordinare per coprire il deficit e ripristinare il livello di sicurezza (almeno 2x il quantitativo minimo). Modifica le quantità prima di esportare o stampare.
+                        </p>
+                    </div>
+                </div>
+
+                <div id="reorder-table-container">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+
+            <!-- TAB 6: MEZZI & DESTINAZIONI ASSEGNATARIE -->
+            <div id="tab-destinations" class="tab-content hidden space-y-5">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">🚑</span>
+                            <h3 class="font-black text-xl text-slate-800">Parco Mezzi & Reparti Assegnatari</h3>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-1 max-w-2xl">
+                            Personalizza e rinomina liberamente le ambulanze, automediche, zaini e reparti a cui viene scaricato il materiale sanitario. Quando rinomini un mezzo, puoi aggiornare automaticamente anche lo storico!
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.WarehouseApp.openAddDestinationModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            + Aggiungi Nuovo Mezzo / Postazione
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Mezzi -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs uppercase font-bold text-slate-400">Mezzi / Reparti Registrati</span>
+                            <div id="kpi-destinations-count" class="text-2xl font-black text-slate-800 mt-0.5">8</div>
+                        </div>
+                        <span class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl text-xl">🚑</span>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs uppercase font-bold text-slate-400">Volume Totale Assegnato</span>
+                            <div id="kpi-destinations-pieces" class="text-2xl font-black text-emerald-700 mt-0.5">Caricamento...</div>
+                        </div>
+                        <span class="p-3 bg-blue-50 text-blue-600 rounded-2xl text-xl">📦</span>
+                    </div>
+                </div>
+
+                <div id="destinations-cards-container">
+                    <!-- Popolato dinamicamente da app.js -->
+                </div>
+            </div>
+
+            <!-- TAB 7: IMPORT, EXPORT & BACKUP -->
+            <div id="tab-settings" class="tab-content hidden space-y-6 max-w-4xl">
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800 mb-1">Salvataggio Dati & Backup Completo</h3>
+                    <p class="text-sm text-slate-500 mb-6">Tutti i dati risiedono localmente nel tuo browser. Crea copie di sicurezza regolari per evitare perdite di dati.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Backup Completo Database (JSON)</h4>
+                                <p class="text-xs text-slate-500 mt-1 mb-4">Scarica tutti i 64 articoli, lotti e l'intero storico di oltre 1000 movimentazioni in formato JSON ripristinabile.</p>
+                            </div>
+                            <button onclick="window.WarehouseApp.exportJSONBackup()" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Scarica Backup JSON
+                            </button>
+                        </div>
+
+                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Esportazione per Microsoft Excel (CSV)</h4>
+                                <p class="text-xs text-slate-500 mt-1 mb-4">Esporta le tabelle con formattazione italiana (separatore punto e virgola) per aprire direttamente in Excel o Fogli Google.</p>
+                            </div>
+                            <div class="space-y-2">
+                                <button onclick="window.WarehouseApp.exportToCSV('inventory')" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5">
+                                    Esporta Inventario Articoli (CSV)
+                                </button>
+                                <button onclick="window.WarehouseApp.exportToCSV('movements')" class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5">
+                                    Esporta Storico Movimenti (CSV)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ripristino Dati Iniziali -->
+                <div class="bg-rose-50/60 rounded-2xl border border-rose-200 p-6 shadow-sm">
+                    <h3 class="font-bold text-lg text-rose-800 mb-1">Zona di Ripristino Dati</h3>
+                    <p class="text-sm text-rose-700/80 mb-4">Se desideri ripartire da zero ricaricando il file CSV originale fornito all'inizio, premi il pulsante sottostante.</p>
+                    <button onclick="window.WarehouseApp.resetToFactoryData()" class="py-2.5 px-5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Reimposta Dati Originali del File
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL NUOVO CARICO MERCI -->
+    <div id="modal-load" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="p-2 rounded-xl bg-emerald-100 text-emerald-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-800">Registra Nuovo Carico Merci</h3>
+                        <span class="text-xs text-slate-400">Incrementa la giacenza e crea il lotto</span>
+                    </div>
+                </div>
+                <button onclick="window.WarehouseApp.closeModal('modal-load')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form id="form-add-load" class="space-y-4 mt-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Presidio / Materiale *</label>
+                    <select id="modal-load-item-select" name="itemId" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <!-- Popolato dinamicamente -->
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Quantità Caricata (pz) *</label>
+                        <input type="number" min="1" name="quantity" required placeholder="Es. 50" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data di Carico</label>
+                        <input type="date" name="loadDate" value="2026-11-16" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-slate-600 uppercase">Data di Scadenza Lotto</label>
+                        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="noExpiry" onchange="document.getElementById('load-expiry-input').disabled = this.checked;" class="rounded text-emerald-600 focus:ring-emerald-500">
+                            <span>Senza scadenza (Durevole)</span>
+                        </label>
+                    </div>
+                    <input id="load-expiry-input" type="date" name="expiryDate" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Codice Lotto (opzionale)</label>
+                        <input type="text" name="lotNumber" placeholder="Es. LOT-2026-A1" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fornitore</label>
+                        <input type="text" name="supplier" placeholder="Centrale Sanitaria / Ditta" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Note o Riferimento Bolla / DDT</label>
+                    <input type="text" name="notes" placeholder="DDT n. 1234/26..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="window.WarehouseApp.closeModal('modal-load')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">Annulla</button>
+                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-md">Salva Carico</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUOVO SCARICO MERCI -->
+    <div id="modal-discharge" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="p-2 rounded-xl bg-blue-100 text-blue-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-800">Registra Scarico Merci</h3>
+                        <span class="text-xs text-slate-400">Scarico su ambulanza, zaino o reparto</span>
+                    </div>
+                </div>
+                <button onclick="window.WarehouseApp.closeModal('modal-discharge')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Suggerimento FEFO -->
+            <div id="discharge-fefo-tip" class="hidden mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800"></div>
+
+            <form id="form-add-discharge" class="space-y-4 mt-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Presidio da Scaricare *</label>
+                    <select id="modal-discharge-item-select" name="itemId" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <!-- Popolato dinamicamente -->
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Quantità da Scaricare *</label>
+                        <input type="number" min="1" name="quantity" required value="1" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Data Scarico</label>
+                        <input type="date" name="dischargeDate" value="2026-11-16" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Destinazione / Mezzo Assegnatario *</label>
+                    <select name="destination" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="Ambulanza Emergenza Bravo 1">Ambulanza Emergenza Bravo 1</option>
+                        <option value="Ambulanza Emergenza Bravo 2">Ambulanza Emergenza Bravo 2</option>
+                        <option value="Automedica Alfa 1">Automedica Alfa 1</option>
+                        <option value="Posto Primo Soccorso">Posto Primo Soccorso</option>
+                        <option value="Zaino Soccorso Territoriale">Zaino Soccorso Territoriale</option>
+                        <option value="Reparto Degenza">Reparto Degenza</option>
+                        <option value="Ambulatorio Prelievi">Ambulatorio Prelievi</option>
+                        <option value="Corso Formazione Soccorritori">Corso Formazione Soccorritori</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Operatore / Richiedente</label>
+                        <input type="text" name="operator" value="Soccorritore in Turno" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Motivazione</label>
+                        <input type="text" name="reason" value="Rifornimento dotazione standard" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Note Opzionali</label>
+                    <input type="text" name="notes" placeholder="Eventuale intervento o motivo sostituzione..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="window.WarehouseApp.closeModal('modal-discharge')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">Annulla</button>
+                    <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-md">Conferma Scarico</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUOVO ARTICOLO -->
+    <div id="modal-add-item" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-base text-slate-800">Aggiungi Nuovo Articolo a Catalogo</h3>
+                <button onclick="window.WarehouseApp.closeModal('modal-add-item')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form onsubmit="window.WarehouseApp.handleAddNewItem(event)" class="space-y-4 mt-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Presidio / Materiale *</label>
+                    <input type="text" name="newItemName" required placeholder="Es. DEFIBRILLATORE DAE..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Categoria *</label>
+                    <select name="newItemCategory" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="Vie Aeree & Ventilazione">Vie Aeree & Ventilazione</option>
+                        <option value="Medicazione & Bendaggi">Medicazione & Bendaggi</option>
+                        <option value="DPI & Disinfezione">DPI & Disinfezione</option>
+                        <option value="Diagnostica & Monitoraggio">Diagnostica & Monitoraggio</option>
+                        <option value="Strumenti & Presidi Chirurgici">Strumenti & Presidi Chirurgici</option>
+                        <option value="Crioterapia">Crioterapia</option>
+                        <option value="Tessili & Biancheria">Tessili & Biancheria</option>
+                        <option value="Smaltimento Rifiuti Sanitari">Smaltimento Rifiuti</option>
+                        <option value="Alimentazione & Batterie">Alimentazione & Batterie</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Giacenza Iniziale</label>
+                        <input type="number" min="0" name="newItemStock" value="0" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Scorta Minima *</label>
+                        <input type="number" min="0" name="newItemMinStock" value="5" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="window.WarehouseApp.closeModal('modal-add-item')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">Annulla</button>
+                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-md">Salva nel Catalogo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL MODIFICA ARTICOLO / SOGLIE -->
+    <div id="modal-edit-item" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-base text-slate-800">Modifica Articolo & Soglie</h3>
+                <button onclick="window.WarehouseApp.closeModal('modal-edit-item')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form id="form-edit-item" onsubmit="window.WarehouseApp.handleSaveEditItem(event)" class="space-y-4 mt-4">
+                <input type="hidden" name="itemId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Visualizzato</label>
+                    <input type="text" name="name" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Categoria</label>
+                    <select name="category" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="Vie Aeree & Ventilazione">Vie Aeree & Ventilazione</option>
+                        <option value="Medicazione & Bendaggi">Medicazione & Bendaggi</option>
+                        <option value="DPI & Disinfezione">DPI & Disinfezione</option>
+                        <option value="Diagnostica & Monitoraggio">Diagnostica & Monitoraggio</option>
+                        <option value="Strumenti & Presidi Chirurgici">Strumenti & Presidi Chirurgici</option>
+                        <option value="Crioterapia">Crioterapia</option>
+                        <option value="Tessili & Biancheria">Tessili & Biancheria</option>
+                        <option value="Smaltimento Rifiuti Sanitari">Smaltimento Rifiuti</option>
+                        <option value="Alimentazione & Batterie">Alimentazione & Batterie</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Giacenza Attuale</label>
+                        <input type="number" min="0" name="stock" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Soglia Minima (Scorta)</label>
+                        <input type="number" min="0" name="minStock" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-bold text-rose-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="window.WarehouseApp.closeModal('modal-edit-item')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">Annulla</button>
+                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-md">Salva Modifiche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CENTRO ALLARMI & SCADENZE -->
+    <div id="modal-expiry-center" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <span class="p-2.5 rounded-xl bg-red-100 text-red-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-black text-lg text-slate-800">Centro Notifiche Allarmi & Scadenze</h3>
+                        <p class="text-xs text-slate-500">Monitoraggio attivo scadenze lotti e presidi sanitari</p>
+                    </div>
+                </div>
+                <button onclick="window.WarehouseApp.closeModal('modal-expiry-center')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Lista lotti allertati -->
+            <div id="expiry-center-body" class="flex-1 overflow-y-auto py-4 space-y-3">
+                <!-- Popolato dinamicamente da app.js -->
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <button onclick="window.WarehouseApp.addTestExpiredLot()" class="text-xs text-slate-500 hover:text-slate-800 font-medium underline">
+                    + Inserisci un lotto scaduto di test per simulazione
+                </button>
+                <button type="button" onclick="window.WarehouseApp.closeModal('modal-expiry-center')" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors">
+                    Chiudi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUOVO MEZZO ASSEGNATARIO -->
+    <div id="modal-add-destination" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">🚑</span>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-800">Aggiungi Mezzo o Reparto</h3>
+                        <span class="text-xs text-slate-400">Nuova destinazione per scarico materiale</span>
+                    </div>
+                </div>
+                <button onclick="window.WarehouseApp.closeModal('modal-add-destination')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form id="form-add-destination" onsubmit="window.WarehouseApp.handleSaveDestination(event)" class="space-y-4 mt-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Mezzo / Postazione *</label>
+                    <input type="text" name="destName" required placeholder="Es. Ambulanza Charlie 1, MSB 402, Zaino Medico..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tipologia Mezzo *</label>
+                    <select name="destType" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium">
+                        <option value="Ambulanza">Ambulanza (Soccorso / Trasporto)</option>
+                        <option value="Automedica">Automedica / Autoinfermieristica</option>
+                        <option value="Zaino / Borsa">Zaino Soccorso / Borsa Medica</option>
+                        <option value="Postazione Fissa">Posto Primo Soccorso / Presidio</option>
+                        <option value="Reparto">Reparto Degenza / Ospedaliero</option>
+                        <option value="Ambulatorio">Ambulatorio Prelievi / Medicazioni</option>
+                        <option value="Formazione">Corso Formazione / Addestramento</option>
+                        <option value="Altro">Altro mezzo o postazione</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Sigla / Codice</label>
+                        <input type="text" name="destCode" placeholder="Es. AMB-03" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Targa Mezzo</label>
+                        <input type="text" name="destPlate" placeholder="Es. CRI-123AA" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Note Opzionali</label>
+                    <input type="text" name="destNotes" placeholder="Es. Assegnata alla sede distaccata..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="window.WarehouseApp.closeModal('modal-add-destination')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">Annulla</button>
+                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-md">Salva Nuovo Mezzo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL RINOMINA / MODIFICA MEZZO ASSEGNATARIO -->
+    <div id="modal-edit-destination" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="p-2 rounded-xl bg-amber-100 text-amber-800">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-800">Rinomina Mezzo / Destinazione</h3>
+                        <span class="text-xs text-slate-400">Modifica nome e opzioni di sincronizzazione</span>
+                    </div>
+                </div>
+                <button onclick="window.WarehouseApp.closeModal('modal-edit-destination')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form id="form-edit-destination" onsubmit="window.WarehouseApp.handleSaveEditDestination(event)" class="space-y-4 mt-4">
+                <input type="hidden" name="destId">
+                <input type="hidden" name="destOldName">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome Mezzo Assegnatario *</label>
+                    <input type="text" name="destName" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tipologia</label>
+                    <select name="destType" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium">
+                        <option value="Ambulanza">Ambulanza (Soccorso / Trasporto)</option>
+                        <option value="Automedica">Automedica / Autoinfermieristica</option>
+                        <option value="Zaino / Borsa">Zaino Soccorso / Borsa Medica</option>
+                        <option value="Postazione Fissa">Posto Primo Soccorso / Presidio</option>
+                        <option value="Reparto">Reparto Degenza / Ospedaliero</option>
+                        <option value="Ambulatorio">Ambulatorio Prelievi / Medicazioni</option>
+                        <option value="Formazione">Corso Formazione / Addestramento</option>
+                        <option value="Altro">Altro mezzo o postazione</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Codice</label>
+                        <input type="text" name="destCode" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Targa</label>
+                        <input type="text" name="destPlate" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Note</label>
+                    <input type="text" name="destNotes" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+                <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200">
+                    <label class="flex items-start gap-2.5 text-xs text-amber-900 cursor-pointer">
+                        <input type="checkbox" name="updateHistory" checked class="rounded text-amber-600 focus:ring-amber-500 mt-0.5">
+                        <span><strong>Aggiorna anche lo storico dei movimenti passati:</strong> rinomina automaticamente questo mezzo in tutti gli scarichi già registrati in passato per mantenere la coerenza statistica.</span>
+                    </label>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="window.WarehouseApp.closeModal('modal-edit-destination')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">Annulla</button>
+                    <button type="submit" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-colors shadow-md">Salva Modifiche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script applicativo -->
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
